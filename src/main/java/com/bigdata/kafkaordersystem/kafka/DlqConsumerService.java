@@ -43,7 +43,7 @@
 //    )
 //    public void consumeFromDlq(ConsumerRecord<String, Order> record) {
 //        log.error(
-//                "💀 DLQ MESSAGE RECEIVED → key={}, orderId={}, product={}, price={}, partition={}, offset={}",
+//                "DLQ MESSAGE RECEIVED → key={}, orderId={}, product={}, price={}, partition={}, offset={}",
 //                record.key(),
 //                record.value().getOrderId(),
 //                record.value().getProduct(),
