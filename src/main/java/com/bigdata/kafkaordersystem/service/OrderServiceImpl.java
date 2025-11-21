@@ -19,7 +19,6 @@ public class OrderServiceImpl implements OrderService {
                 .setOrderId(request.getOrderId())
                 .setProduct(request.getProduct())
                 .setPrice(request.getPrice())
-                .setQuantity(request.getQuantity())
                 .build();
         producer.sendOrder(order);
     }

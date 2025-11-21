@@ -4,6 +4,7 @@ import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
@@ -37,16 +38,18 @@ public class KafkaConfiguration {
     @Value("${spring.kafka.properties.schema-registry-url}")
     private String schemaRegistryUrl;
 
+    // Topics
     @Bean
     public NewTopic ordersTopic() {
-        return new NewTopic(ordersTopic, 3, (short)1);
+        return new NewTopic(ordersTopic, 3, (short) 1);
     }
 
     @Bean
     public NewTopic dlqTopic() {
-        return new NewTopic(dlqTopic, 1, (short)1);
+        return new NewTopic(dlqTopic, 1, (short) 1);
     }
 
+    // Producer
     @Bean
     public ProducerFactory<String, Object> producerFactory() {
         Map<String, Object> props = new HashMap<>();
@@ -62,6 +65,7 @@ public class KafkaConfiguration {
         return new KafkaTemplate<>(pf);
     }
 
+    // Consumer
     @Bean
     public ConsumerFactory<String, Object> consumerFactory() {
         Map<String, Object> props = new HashMap<>();
@@ -70,23 +74,26 @@ public class KafkaConfiguration {
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, io.confluent.kafka.serializers.KafkaAvroDeserializer.class);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        props.put("specific.avro.reader", true);
+        props.put("specific.avro.reader", "true");  // <--- must be string
         props.put(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl);
         return new DefaultKafkaConsumerFactory<>(props);
     }
 
+    // Dead Letter Recoverer
     @Bean
     public DeadLetterPublishingRecoverer recoverer(KafkaTemplate<String, Object> template) {
         return new DeadLetterPublishingRecoverer(template,
-                (r,e) -> new org.apache.kafka.common.TopicPartition(dlqTopic, 0));
+                (r, e) -> new TopicPartition(dlqTopic, 0));
     }
 
+    // Error handler for main consumer
     @Bean
     public DefaultErrorHandler errorHandler(DeadLetterPublishingRecoverer recoverer) {
-        FixedBackOff backOff = new FixedBackOff(3000L, 5L);
+        FixedBackOff backOff = new FixedBackOff(3000L, 5L); // retry 5 times
         return new DefaultErrorHandler(recoverer, backOff);
     }
 
+    // Kafka Listener Factory
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory(
             ConsumerFactory<String, Object> consumerFactory,

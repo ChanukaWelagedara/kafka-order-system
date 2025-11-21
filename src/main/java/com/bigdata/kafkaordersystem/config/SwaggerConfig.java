@@ -11,6 +11,7 @@ public class SwaggerConfig {
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
+                .openapi("3.0.3") // force OpenAPI version
                 .info(new Info()
                         .title("Kafka Order System API")
                         .version("1.0")
