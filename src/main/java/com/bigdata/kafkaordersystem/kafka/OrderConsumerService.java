@@ -20,9 +20,13 @@ public class OrderConsumerService {
         log.info("CONSUMER INVOKED - Received: {}", order);
 
         // FORCE FAILURE for testing DLQ
-        if ("TESTFAIL".equals(order.getOrderId())) {
-            log.warn("Forcing failure for order {}", order.getOrderId());
-            throw new RuntimeException("Forced failure for DLQ testing");
+        // Note: Avro returns CharSequence (Utf8), not String, so we need to convert
+        String orderId = String.valueOf(order.getOrderId());
+        log.info("OrderId: '{}', Type: {}", orderId, order.getOrderId().getClass().getName());
+
+        if ("TESTFAIL".equals(orderId)) {
+            log.error("!!! THROWING EXCEPTION FOR ORDER {} !!!", orderId);
+            throw new RuntimeException("Forced failure for DLQ testing - orderId: " + orderId);
         }
 
         // Normal processing
