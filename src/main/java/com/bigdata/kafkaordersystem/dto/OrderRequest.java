@@ -19,7 +19,7 @@ public class OrderRequest {
 
     @NotNull(message = "price is required")
     @Positive(message = "price must be positive")
-    private float price;
+    private double price;
 
 
 }
